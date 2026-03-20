@@ -1,0 +1,56 @@
+###  afficher tous les utilisateurs
+GET http://localhost:8080/blokus/utilisateur
+
+###  creer un utilisateur
+POST http://localhost:8080/blokus/utilisateur
+Content-Type: application/json
+
+{
+  "nom": "tut",
+  "email": "tut@gmail.com",
+  "motDePasse": "tut"
+}
+
+###  connexion
+POST http://localhost:8080/blokus/connexion
+Content-Type: application/json
+
+{
+  "email": "bob@gmail.com",
+  "motDePasse": "bob"
+}
+
+
+### Récupérer tous les utilisateurs
+GET http://localhost:8080/blokus
+
+### Récupérer un utilisateur par ID
+GET http://localhost:8080/blokus/1
+Accept: application/json
+
+### Rechercher un utilisateur par email
+GET http://localhost:8080/blokus/search?email=utilisateur@example.com
+Accept: application/json
+
+### Ajouter un nouvel utilisateur
+POST http://localhost:8080/blokus
+Content-Type: application/json
+
+{
+  "nom": "Dupont",
+  "email": "dupont@example.com",
+  "motDePasse": "password123"
+}
+
+### Mettre à jour un utilisateur existant
+PUT http://localhost:8080/blokus/1
+Content-Type: application/json
+
+{
+  "nom": "Dupont Modifié",
+  "email": "dupont@example.com",
+  "motDePasse": "newpassword"
+}
+
+### Supprimer un utilisateur par ID
+DELETE http://localhost:8080/blokus/1

@@ -1,0 +1,45 @@
+/* navbar.css */
+.navbar-custom {
+    background-color: #FF7B9E;
+    padding: 12px 0;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.navbar .container {
+    max-width: 1140px;
+}
+
+.navbar-custom .navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.navbar-custom .user-name {
+    margin-right: .5rem;
+    font-size: .875rem; /* équivalent de fs-6 */
+}
+
+.navbar-custom .profile-btn {
+    border: 0;
+    padding: 0;
+}
+
+.navbar-custom .profile-btn img {
+    width: 40px;
+    height: 40px;
+}
+
+.navbar-custom .dropdown-menu {
+    border-radius: .25rem;
+}
+
+.navbar-custom .dropdown-item.text-danger {
+    color: #dc3545;
+}

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Accueil - BLOKUS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+
+    <style>
+        body {
+            background-color: #faf3ff;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            flex: 1;
+        }
+        .game-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            max-width: 800px;
+        }
+        .form-container {
+            flex: 1;
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            max-width: 400px;
+        }
+        .form-control {
+            background-color: #f8f9fa;
+            height: 45px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            transition: all 0.3s ease-in-out;
+        }
+        .form-control:focus {
+            background-color: #fff;
+            border-color: #6C63FF;
+            box-shadow: 0 0 8px rgba(108, 99, 255, 0.5);
+        }
+        .btn-primary {
+            background-color: #6C63FF;
+            border-color: #6C63FF;
+            transition: all 0.3s ease-in-out;
+            padding: 10px 20px;
+            font-size: 1.1rem;
+        }
+        .btn-primary:hover {
+            background-color: #5A54E1;
+            border-color: #5A54E1;
+            transform: scale(1.05);
+        }
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+            width: 50px;
+            height: 50px;
+            transition: all 0.3s ease-in-out;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #4B4B4B;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        h2 {
+            font-size: 1.8rem;
+            color: #4B4B4B;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+        .game-description {
+            font-size: 1.1rem;
+            max-width: 400px;
+        }
+        .game-image {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .rules-btn {
+            background-color: transparent;
+            border: 2px solid #6C63FF;
+            color: #6C63FF;
+            font-weight: bold;
+            padding: 10px 25px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .rules-btn:hover {
+            background-color: #6C63FF;
+            color: white;
+        }
+        .join-container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            max-width: 600px;
+            width: 100%;
+        }
+        @media (max-width: 992px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .description-container, .form-container {
+                max-width: 100%;
+            }
+        }
+
+        /* Titre de la modale */
+        .modal-title {
+            font-size: 1.75rem;
+            color: #4B4B4B;
+            font-weight: 600;
+        }
+
+        /* Titres des sections internes de la modale */
+        .modal-body h6 {
+            font-size: 1.25rem;
+            color: #6C63FF;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid #e4deff;
+            padding-bottom: 0.25rem;
+        }
+        select[name="modeJeu"] {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px 15px;
+            width: 100%;
+            margin-bottom: 20px;
+            color: #4B4B4B;
+            font-size: 1rem;
+            transition: all 0.3s ease-in-out;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%234B4B4B' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 12px;
+        }
+
+        select[name="modeJeu"]:focus {
+            outline: none;
+            border-color: #6C63FF;
+            box-shadow: 0 0 8px rgba(108, 99, 255, 0.5);
+            background-color: #fff;
+        }
+        #timerInputContainer {
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        #time {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px 15px;
+            width: 100%;
+            color: #4B4B4B;
+            font-size: 1rem;
+        }
+
+        #time:focus {
+            outline: none;
+            border-color: #6C63FF;
+            box-shadow: 0 0 8px rgba(108, 99, 255, 0.5);
+            background-color: #fff;
+        }
+
+        .alert-error{
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="fragments/navbar :: navbar (utilisateur=${utilisateur})"></div>
+
+<div class="container main-container">
+
+    <div class="game-container">
+        <div>
+            <h1>Blokus</h1>
+            <p class="game-description">
+                Qui saura placer le plus de pièces?<br><br>
+
+                Bloco est un jeu de stratégie où chaque joueur tente de couvrir le plus de cases possibles sur le plateau de jeu à l'aide de tuiles carrées. Les règles de placement sont simples mais les stratégies peuvent rapidement devenir complexes.
+            </p>
+
+            <button type="button"
+                    class="rules-btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#rulesModal">
+                Règles du jeu
+            </button>
+        </div>
+
+        <div class="text-center">
+            <h2>NOUVELLE PARTIE</h2>
+            <div class="mb-4 d-flex justify-content-center align-items-center gap-4">
+                <div class="d-flex align-items-center gap-2">
+                    <img th:src="@{/images/leadership.png}" alt="Joueurs" width="24" height="24"/>
+                    <span>4 joueurs</span>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <img th:src="@{/images/lhorloge.png}" alt="Temps de jeu" width="24" height="24"/>
+                    <span>15 min</span>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <img th:src="@{/images/robot.png}" alt="Robots IA" width="24" height="24"/>
+                    <span>Robots IA</span>
+                </div>
+            </div>
+
+            <form th:action="@{/blokus/partie}" method="post">
+                <div class="mb-3">
+                    <div th:if="${error}" class="alert alert-danger alert-error text-center w-100 mx-auto mb-4" role="alert">
+                        <span th:text="${error}"></span>
+                    </div>
+                    <input type="text"
+                           class="form-control mb-3"
+                           th:classappend="${error} ? 'is-invalid' : ''"
+                           id="nomPartie"
+                           name="nomPartie"
+                           th:value="${nomPartie}"
+                           placeholder="Nom de la partie"
+                           required>
+                </div>
+                <select name="modeJeu" id="modeJeuSelect" onchange="toggleTimerInput()">
+                    <option value="SANS_TIMER">Sans timer</option>
+                    <option value="AVEC_TIMER">Avec timer</option>
+                </select>
+                <div id="timerInputContainer" style="display: none;">
+                    <label for="time" class="form-label">Temps de la partie (minutes)</label>
+                    <input type="number"
+                           class="form-control"
+                           id="time"
+                           name="time"
+                           min="1"
+                           max="60"
+                           value="5">
+                </div>
+                <button type="submit" class="btn btn-primary btn-submit w-100">Lancer la Partie</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="join-container text-center">
+        <h2 class="fs-5 text-muted mb-3">Rejoindre une partie</h2>
+        <div th:if="${param.errorJoin}" class="alert alert-danger mb-3" th:text="${param.errorJoin}"></div>
+        <div id="errorJoinPartie" style="display:none;" class="alert alert-danger mb-3"></div>
+        <div class="d-flex align-items-center justify-content-between p-3 rounded-pill" style="background-color: #e4deff;">
+            <input type="url" class="form-control border-0 rounded-pill px-3 shadow-sm" style="background-color: #f2efff;"
+                   id="lienPartie" placeholder="Coller le lien ici !" required>
+            <button type="button" class="btn btn-success rounded-circle p-2 shadow-lg d-flex align-items-center justify-content-center"
+                    onclick="rejoindrePartie()">
+                <i class="bi bi-check-lg fs-4 text-white"></i>
+            </button>
+        </div>
+    </div>
+
+</div>
+<div class="modal fade" id="rulesModal" tabindex="-1" aria-labelledby="rulesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rulesModalLabel">Règles du jeu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                <h6>I – Matériel</h6>
+                <ul>
+                    <li>Un plateau de jeu de 400 cases.</li>
+                    <li>84 pièces, réparties en 4 couleurs (21 pièces par couleur).</li>
+                    <li>Chaque joueur dispose de 21 pièces de formes différentes&nbsp;:
+                        <ul>
+                            <li>1 pièce de 1 carré</li>
+                            <li>1 pièce de 2 carrés</li>
+                            <li>2 pièces de 3 carrés</li>
+                            <li>5 pièces de 4 carrés</li>
+                            <li>12 pièces de 5 carrés</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h6>II – But du jeu</h6>
+                <p>Chaque joueur tente de placer ses 21 pièces sur le plateau et de couvrir le maximum de cases.</p>
+
+                <h6>III – Déroulement d’une partie</h6>
+                <ol>
+                    <li>Les joueurs tirent au sort leur couleur : orange, violet, vert, bleu.</li>
+                    <li>Le premier joueur place l’une de ses pièces sur une case d’angle du plateau.</li>
+                    <li>Les autres joueurs font de même, chacun leur tour.</li>
+                    <li>Aux tours suivants, chaque nouvelle pièce doit toucher une pièce de la même couleur <strong>par un coin</strong> et <strong>jamais par un côté</strong>.</li>
+                    <li>Les pièces de couleurs différentes peuvent se toucher par les côtés.</li>
+                    <li>Les pièces peuvent être tournées ou retournées. Une pièce posée reste en place jusqu’à la fin de la partie.</li>
+                </ol>
+
+                <h6>IV – Fin de la partie</h6>
+                <p>La partie se termine lorsque tous les joueurs ont passé consécutivement.</p>
+                <ul>
+                    <li>– 1 point par carré non posé.</li>
+                    <li>+ 15 points si toutes les 21 pièces ont été posées.</li>
+                    <li>+ 20 points si la dernière pièce posée est le carré unique (la « pièce d’un carré »).</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function rejoindrePartie() {
+        const lien = document.getElementById("lienPartie").value.trim();
+        const baseUrl = "localhost:8080/blokus/partie/";
+        const regex = /^https?:\/\/localhost:8080\/blokus\/partie\/([0-9a-fA-F\-]+)$/;
+        const errorDiv = document.getElementById("errorJoinPartie");
+        if (errorDiv) errorDiv.style.display = "none";
+
+        if (!lien) {
+            showError("Veuillez entrer un lien valide.");
+            return;
+        }
+
+        let normalized = lien;
+        if (lien.startsWith("/blokus/partie/")) {
+            normalized = "http://localhost:8080" + lien;
+        }
+        if (!normalized.startsWith("http")) {
+            normalized = "http://" + normalized;
+        }
+
+        const match = regex.exec(normalized);
+        if (match) {
+            window.location.href = "/blokus/partie/" + match[1];
+        } else {
+            showError("Lien invalide ! Le lien doit commencer par <b>localhost:8080/blokus/partie/</b> et contenir un identifiant valide.");
+        }
+    }
+
+    function showError(msg) {
+        let errorDiv = document.getElementById("errorJoinPartie");
+        if (!errorDiv) {
+            errorDiv = document.createElement("div");
+            errorDiv.className = "alert alert-danger mt-2";
+            errorDiv.id = "errorJoinPartie";
+            const container = document.querySelector('.join-container');
+            container.insertBefore(errorDiv, container.firstChild);
+        }
+        errorDiv.innerHTML = msg;
+        errorDiv.style.display = "block";
+    }
+
+    function toggleTimerInput() {
+        const modeSelect = document.getElementById('modeJeuSelect');
+        const timerContainer = document.getElementById('timerInputContainer');
+
+        if (modeSelect.value === 'AVEC_TIMER') {
+            timerContainer.style.display = 'block';
+        } else {
+            timerContainer.style.display = 'none';
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

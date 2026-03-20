@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connexion Utilisateur</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #ffdfec;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            background: #FFFFFF;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-container h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .password-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+        }
+        .btn-primary {
+            background-color: #6C63FF;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: bold;
+        }
+        .btn-primary:hover {
+            background-color: #5A54E1;
+        }
+        .footer-link {
+            color: #6C63FF;
+            font-weight: 500;
+        }
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+        .form-group {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h1>Connexion</h1>
+
+    <div th:if="${error}"
+         th:classappend="${error.startsWith('Identifiants') ? ' alert-danger'
+                           : error.contains('créé')        ? ' alert-success'
+                           : ' alert-info'}"
+         class="alert text-center"
+         role="alert">
+        <span th:text="${error}"></span>
+    </div>
+
+    <form th:action="@{/blokus/connexion}" method="post">
+        <div class="form-group mb-3">
+            <label for="email" class="form-label">Email / Nom d'utilisateur</label>
+            <input type="text" id="email" name="nomOuEmail" class="form-control" required>
+        </div>
+        <div class="form-group mb-3">
+            <label for="motDePasse" class="form-label">Mot de Passe</label>
+            <div class="password-container">
+                <input type="password" id="motDePasse" name="motDePasse" class="form-control" required>
+                <img src="/images/show.png" alt="Afficher" class="toggle-password" id="togglePassword">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Se Connecter</button>
+    </form>
+
+    <div class="mt-3">
+        <p>Pas encore de compte ? <a href="/blokus/inscription" class="footer-link">S'inscrire</a></p>
+    </div>
+</div>
+<script>
+    const passwordInput = document.getElementById("motDePasse");
+    const togglePassword = document.getElementById("togglePassword");
+
+    const showIcon = togglePassword.getAttribute("src");
+    const hideIcon = showIcon.replace("show.png", "hide.png");
+
+    togglePassword.addEventListener("click", function () {
+        if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            togglePassword.src = hideIcon;
+        } else {
+            passwordInput.type = "password";
+            togglePassword.src = showIcon;
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

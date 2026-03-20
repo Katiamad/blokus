@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Blokus - Drag and Drop</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/navbar.css}">
+    <style>
+        .cell {
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 1px solid #e6e6e6;
+            transition: border 0.2s ease;
+        }
+
+        body {
+            background-color: #faf3ff;
+            margin-top: 80px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(20, 20px);
+            gap: 1px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .piece-grid.dragging {
+            opacity: 0;
+        }
+
+        .piece {
+            width: 20px;
+            height: 20px;
+        }
+
+        .game-area {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: nowrap;
+        }
+
+
+        #rotation-controls {
+            display: none;
+            position: absolute;
+            background-color: #ffafcc;
+            border: 1px solid #ffa9c7;
+            padding: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            border-radius: 10px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .rotation-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .rotation-buttons .top-buttons,
+        .rotation-buttons .bottom-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rotation-buttons button {
+            margin: 0;
+            padding: 5px;
+            background-color: #ffc8dd;
+            border: 1px solid #ffb3d1;
+            cursor: pointer;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rotation-buttons button:hover {
+            background-color: #ffe0ed;
+        }
+
+        .rotation-buttons button img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .other-players-pieces {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-left: 1px solid #ccc;
+        }
+
+        .other-players-pieces .piece-grid {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .bg-pink {
+            background-color: #FF7B9E;
+        }
+
+        h1, h5 {
+            color: #4B4B4B;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .grid-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .coin-disponible {
+            position: relative;
+            animation: pulse 2s infinite;
+        }
+
+        .coin-disponible::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background-color: var(--coin-color, #5A54E1);
+            border-radius: 70%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pieces-available-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        .piece-grid {
+            gap: 1px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(20, 20px);
+            gap: 1px;
+        }
+
+        .scores-container {
+            flex-shrink: 0;
+        }
+        .scores-container .card {
+            width: 250px;
+            margin: 0;
+        }
+        .scores-container .card-header {
+            font-weight: bold;
+        }
+        .scores-container .list-group-item {
+            font-size: 1rem;
+        }
+
+        #rotation-controls {
+            position: static !important;
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .rotation-buttons .top-buttons,
+        .rotation-buttons .bottom-buttons {
+            display: flex;
+            width: 100%;
+            gap: 0.5rem;
+        }
+
+        .rotation-buttons .top-buttons button,
+        .rotation-buttons .bottom-buttons button {
+            flex: 1;
+            margin: 0;
+        }
+        .turn-banner {
+            width: 100%;
+            padding: 0.5rem 0;
+            text-align: center;
+            color: #fff;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .color-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        #timer-container {
+            background-color: #ffc8dd;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%;
+        }
+
+        #timer {
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            color: #4B4B4B;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .temps {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .timer-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div th:replace="fragments/navbar :: navbar (utilisateur=${utilisateur})"></div>
+
+<div class="main-content">
+    <div class="game-area">
+        <div class="grid-container">
+
+            <div class="turn-banner"
+                 th:each="pj : ${partie.joueurs}"
+                 th:if="${pj.tour == partie.tour}"
+                 th:style="'background-color:' + ${pj.couleur} + '; color: white;'">
+                <p th:if="${pj.utilisateur.id == utilisateur.id}">
+                    C’est votre tour !
+                </p>
+                <p th:unless="${pj.utilisateur.id == utilisateur.id}">
+                    C’est au tour de <strong th:text="${pj.utilisateur.nom} "></strong> de jouer.
+                </p>
+            </div>
+
+            <div class="turn-banner"
+                 th:each="pr : ${partie.robots}"
+                 th:if="${pr.tour == partie.tour}"
+                 th:style="'background-color:' + ${pr.couleur} + '; color: white;'">
+                <p>
+                    C’est au tour de <strong th:text="${pr.nom}"></strong> de jouer.
+                </p>
+            </div>
+
+            <div id="erreur-blokus-zone">
+                <div th:if="${error}" id="messageErreurBlokus" class="alert alert-danger mt-3" th:text="${error}"></div>
+            </div>
+
+
+            <div class="grid" id="grid">
+                <div th:each="row, rowStat : ${partie.grille}">
+                    <div th:each="cell, cellStat : ${row}" class="cell"
+
+                         th:classappend="${#lists.contains(coinsDisponibles.![#this[0] + ',' + #this[1]], rowStat.index + ',' + cellStat.index)} ? 'coin-disponible' : ''"
+                         th:style="|
+        --coin-color: ${
+            #lists.contains(coinsDisponibles.![#this[0] + ',' + #this[1]], rowStat.index + ',' + cellStat.index)
+                ? couleurJoueurConnecte
+                : 'white'
+        };
+        background-color: ${
+            cell != 0
+                ? couleurs[cell - 1]
+                : 'white'
+        };
+    |"
+                         ondragover="checkPlacement(event)"
+                         ondrop="drop(event)"
+                         th:data-x="${rowStat.index}"
+                         th:data-y="${cellStat.index}"
+                         th:data-owner="${cell}"
+                         draggable="true"
+                         ondragstart="dragFromGrid(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="scores-container">
+
+            <div id="timer-container" th:if="${timer != null}">
+                <div id="timer">
+                    <span class="temps">TEMPS RESTANT</span>
+                    <span class="timer-value" id="timer-display"></span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-pink text-white">
+                    <h5 class="mb-0">Scores</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between" th:each="pj : ${partie.joueurs}">
+                        <div class="color-circle" th:style="'background-color: ' + ${pj.couleur} + ';'"></div>
+                        <span th:text="${pj.utilisateur.nom}">Alice</span>
+                        <span th:text="${pj.points}">0</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between" th:each="robot : ${partie.robots}">
+                        <div class="color-circle" th:style="'background-color: ' + ${robot.couleur} + ';'"></div>
+                        <span th:text="${robot.nom}">Robot 1</span>
+                        <span th:text="${robot.points}">0</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div id="rotation-controls" class="rotation-buttons" style="display: none; position: static; margin-top: 1rem;">
+                <div class="top-buttons">
+                    <button class="btn btn-light" onclick="rotatePiece(-1)">
+                        <img src="/images/rotate-left.png" alt="Tourner à gauche">
+                    </button>
+                    <button class="btn btn-light" onclick="rotatePiece(1)">
+                        <img src="/images/rotate-right.png" alt="Tourner à droite">
+                    </button>
+                    <button id="finTourButton" class="btn btn-success mt-2">Ok</button>
+                </div>
+                <div class="bottom-buttons">
+                    <button class="btn btn-light" onclick="mirrorPiece('horizontal')">
+                        <img src="/images/flip-horizontal.png" alt="Miroir horizontal">
+                    </button>
+                    <button class="btn btn-light" onclick="mirrorPiece('vertical')">
+                        <img src="/images/flip-vertical.png" alt="Miroir vertical">
+                    </button>
+                    <button id="buttonCroix" class="btn btn-danger mt-2">X</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div th:each="joueur, joueurStat : ${partie.getJoueurs()}">
+        <div th:if="${joueur.utilisateur.id == utilisateur.id}" class="pieces-available-container">
+            <div th:each="piece, pieceStat : ${joueur.pieces}"
+                 class="piece-grid"
+                 th:style="'grid-template-columns: repeat(' + ${piece.forme[0].length} + ', 20px);'"
+                 th:id="${piece.id}"
+                 th:draggable="${partie.tour == joueurStat.index + 1 ? 'true' : 'false'}"
+                 ondragstart="drag(event)">
+                <div th:each="row, rowStat : ${piece.forme}" style="display: flex;">
+                    <div th:each="cell, colStat : ${row}"
+                         class="cell"
+                         th:classappend="${cell == 1} ? 'piece' : ''"
+                         th:attr="data-piece-x=${colStat.index}, data-piece-y=${rowStat.index}"
+                         th:style="${cell == 1} ? 'background-color: ' + ${joueur.couleur} + ';' : 'background-color: white;'+ 'border: 1px solid white;'"
+                         th:draggable="${partie.tour == joueurStat.index + 1 ? 'true' : 'false'}"
+                         ondragstart="drag(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="idPartie" th:value="${partie.id}">
+<input type="hidden" id="tourPartie" th:value="${partie.tour}" />
+<input type="hidden" id="timerMinutes" th:value="${timer}" />
+<input type="hidden" id="startTime"
+       th:value="${#dates.format(startTime, 'yyyy-MM-dd''T''HH:mm:ss''Z''')}" />
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script>
+    const partieTour = parseInt(document.getElementById("tourPartie").value, 10);
+    let stompClient = null;
+
+    function connectWebSocket() {
+        const idPartie = document.getElementById("idPartie").value;
+        const socket = new SockJS('/blokus-websocket');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function(frame) {
+            let reloadTimeout = null;
+            stompClient.subscribe('/topic/grid-updates/' + idPartie, function(message) {
+                const update = JSON.parse(message.body);
+                if (update.reload) {
+                    if (reloadTimeout) clearTimeout(reloadTimeout);
+                    reloadTimeout = setTimeout(() => window.location.reload(), 200);
+                }
+            });
+
+
+            stompClient.subscribe('/topic/fin-partie/' + idPartie, function(message) {
+                const data = JSON.parse(message.body);
+                if (data.fin) {
+                    window.location.href = "/blokus/fin/" + data.partieId;
+                }
+            });
+
+        });
+    }
+
+    connectWebSocket();
+
+    document.querySelectorAll('#grid .cell').forEach(cell => {
+        cell.dataset.originalColor = cell.style.backgroundColor || "white";
+        cell.dataset.originalOwner = cell.dataset.owner || "0";
+    });
+
+    /******** Rotation des pieces ******/
+    let activePieceInGrid = null;
+    let cellulesAvantDrop = [];
+    let cellulesApresDrop = [];
+
+    function showRotationControls() {
+        document.getElementById("rotation-controls").style.display = "block";
+    }
+    function hideRotationControls() {
+        document.getElementById("rotation-controls").style.display = "none";
+    }
+
+    function rotateMatrix(matrix, direction) {
+        const rows = matrix.length;
+        const cols = matrix[0].length;
+        let rotated = Array(cols).fill().map(() => Array(rows).fill(0));
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                if (direction === 1) {
+                    rotated[j][rows - 1 - i] = matrix[i][j];
+                } else {
+                    rotated[cols - 1 - j][i] = matrix[i][j];
+                }
+            }
+        }
+        return rotated;
+    }
+
+    function rotatePiece(direction) {
+        if (!activePieceInGrid) return;
+        let pieceArray = extractPieceArrayFromGrid(activePieceInGrid);
+        let rotatedPiece = rotateMatrix(pieceArray, direction);
+        updateGridWithRotatedPiece(rotatedPiece, activePieceInGrid);
+    }
+
+    function mirrorPiece(direction) {
+        if (!activePieceInGrid) return;
+        let pieceArray = extractPieceArrayFromGrid(activePieceInGrid);
+        let mirroredPiece;
+        if (direction === 'horizontal') {
+            mirroredPiece = mirrorMatrixHorizontal(pieceArray);
+        } else if (direction === 'vertical') {
+            mirroredPiece = mirrorMatrixVertical(pieceArray);
+        } else {
+            console.error("Direction de miroir non valide");
+            return;
+        }
+        updateGridWithRotatedPiece(mirroredPiece, activePieceInGrid);
+    }
+
+    function mirrorMatrixHorizontal(matrix) {
+        return matrix.map(row => row.reverse());
+    }
+
+    function mirrorMatrixVertical(matrix) {
+        return matrix.reverse();
+    }
+
+    function extractPieceArrayFromGrid(piece) {
+        if (!piece || !piece.positions) {
+            console.error("Piece or piece.positions is undefined or null");
+            return [];
+        }
+        let minX = Math.min(...piece.positions.map(pos => pos.x));
+        let minY = Math.min(...piece.positions.map(pos => pos.y));
+        let maxX = Math.max(...piece.positions.map(pos => pos.x));
+        let maxY = Math.max(...piece.positions.map(pos => pos.y));
+
+        let rows = maxY - minY + 1;
+        let cols = maxX - minX + 1;
+        let pieceArray = Array(rows).fill().map(() => Array(cols).fill(0));
+
+        piece.positions.forEach(pos => {
+            let row = pos.y - minY;
+            let col = pos.x - minX;
+            pieceArray[row][col] = 1;
+        });
+
+        return pieceArray;
+    }
+
+    function updateGridWithRotatedPiece(newPieceArray, piece) {
+        resetGridPreview();
+        const oldPositions = [...piece.positions];
+        oldPositions.forEach(pos => {
+            const saved = cellulesAvantDrop.find(c =>
+                c.x === pos.x && c.y === pos.y
+            );
+            const cell = document.querySelector(
+                `#grid [data-x="${pos.x}"][data-y="${pos.y}"]`
+            );
+            grille[pos.y][pos.x] = {
+                owner:  saved?.owner ?? null,
+                pieceId: null
+            };
+            if (cell) {
+                const ownerToRestore = (saved && saved.owner != null) ? saved.owner.toString() : "";
+                const colorToRestore = saved?.color || "white";
+
+                cell.dataset.owner = ownerToRestore;
+                cell.style.backgroundColor = colorToRestore;
+                cell.style.border = "1px solid #e6e6e6";
+                cell.removeAttribute("data-piece-id");
+            }
+        });
+        const minX = Math.min(...oldPositions.map(p => p.x));
+        const minY = Math.min(...oldPositions.map(p => p.y));
+        const newPositions = [];
+        for (let r = 0; r < newPieceArray.length; r++) {
+            for (let c = 0; c < newPieceArray[r].length; c++) {
+                if (newPieceArray[r][c] === 1) {
+                    newPositions.push({ x: minX + c, y: minY + r });
+                }
+            }
+        }
+
+        const invalid = newPositions.some(pos => {
+            if (pos.x < 0 || pos.x >= 20 || pos.y < 0 || pos.y >= 20) {
+                return true;
+            }
+            const cellData = grille[pos.y][pos.x];
+            return cellData && cellData.pieceId != null;
+        });
+
+        if (invalid) {
+            oldPositions.forEach(pos => {
+                grille[pos.y][pos.x] = { owner: partieTour, pieceId: piece.id };
+                const cell = document.querySelector(
+                    `#grid [data-x="${pos.x}"][data-y="${pos.y}"]`
+                );
+                if (cell) {
+                    cell.dataset.owner = partieTour.toString();
+                    cell.style.backgroundColor = piece.color;
+                    cell.style.border = "2px solid #e6e6e6";
+                    cell.setAttribute("data-piece-id", piece.id);
+                }
+            });
+            alert("Rotation impossible : la pièce sortirait de la grille ou entrerait en collision.");
+            return;
+        }
+
+        newPositions.forEach(pos => {
+            grille[pos.y][pos.x] = { owner: partieTour, pieceId: piece.id };
+            const cell = document.querySelector(
+                `#grid [data-x="${pos.x}"][data-y="${pos.y}"]`
+            );
+            if (cell) {
+                cell.dataset.owner = partieTour.toString();
+                cell.style.backgroundColor = piece.color;
+                cell.style.border = "3px solid black";
+                cell.setAttribute("data-piece-id", piece.id);
+            }
+        });
+        activePieceInGrid.positions = newPositions;
+    }
+
+    /***************************/
+
+    let isPiecePlaced = false;
+    function allowDrop(event) {
+        event.preventDefault();
+    }
+    let newForme = null;
+    let draggedPiece = null;
+    let draggedOffsetX = 0;
+    let draggedOffsetY = 0;
+    let grille = Array(20).fill(null).map(() =>
+        Array(20).fill(null).map(() => ({ owner: null, pieceId: null }))
+    );
+    let currentPieceColor = null
+
+    function drag(event) {
+        newForme = null;
+        if (isPiecePlaced) {
+            event.preventDefault();
+            return;
+        }
+
+        let grabbedCell = event.target;
+        if (!grabbedCell.classList.contains('piece')) return;
+        let pieceElement = grabbedCell.closest('.piece-grid');
+        let isCurrentPlayerTurn = pieceElement.getAttribute('draggable') === 'true';
+
+        if (!isCurrentPlayerTurn) {
+            event.preventDefault();
+            return;
+        }
+
+        draggedOffsetX = parseInt(grabbedCell.dataset.pieceX);
+        draggedOffsetY = parseInt(grabbedCell.dataset.pieceY);
+        draggedPiece = pieceElement;
+
+        currentPieceColor = grabbedCell.style.backgroundColor;
+
+        let pieceForme = [];
+        let pieceCells = pieceElement.querySelectorAll('.piece');
+        pieceCells.forEach(cell => {
+            let cellX = parseInt(cell.dataset.pieceX);
+            let cellY = parseInt(cell.dataset.pieceY);
+            pieceForme[cellY] = pieceForme[cellY] || [];
+            pieceForme[cellY][cellX] = 1;
+        });
+
+        draggedPiece.positions = [];
+        for (let rowIndex = 0; rowIndex < pieceForme.length; rowIndex++) {
+            for (let colIndex = 0; colIndex < pieceForme[rowIndex].length; colIndex++) {
+                if (pieceForme[rowIndex][colIndex] === 1) {
+                    draggedPiece.positions.push({ x: colIndex, y: rowIndex });
+                }
+            }
+        }
+
+        draggedPiece.classList.add('dragging');
+        hideRotationControls();
+
+        let emptyImage = new Image();
+        emptyImage.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='; // Image vide
+        event.dataTransfer.setDragImage(emptyImage, 0, 0);
+        event.dataTransfer.setData("pieceId", draggedPiece.id);
+        event.dataTransfer.setData("text/plain", draggedPiece.id);
+        enablePieceInAvailableList(draggedPiece.id);
+        isPiecePlaced = false;
+    }
+
+    function checkPlacement(event) {
+        event.preventDefault();
+        if (!draggedPiece) return false;
+
+        const target = event.target;
+        const x0 = parseInt(target.dataset.x, 10);
+        const y0 = parseInt(target.dataset.y, 10);
+        const shape = newForme || extractPieceArrayFromGrid(draggedPiece);
+        const offsetX = x0 - draggedOffsetX;
+        const offsetY = y0 - draggedOffsetY;
+
+        const available = new Set(
+            Array.from(document.querySelectorAll('#grid .coin-disponible'))
+                .map(c => `${c.dataset.x},${c.dataset.y}`)
+        );
+
+        let touchesSide = false;
+        let coversCorner = false;
+
+        for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[r].length; c++) {
+                if (shape[r][c] !== 1) continue;
+
+                const x = offsetX + c;
+                const y = offsetY + r;
+
+                // 1) Hors de la grille ?
+                if (x < 0 || x >= 20 || y < 0 || y >= 20) {
+                    previewPieceOnGrid(offsetX, offsetY, false);
+                    return false;
+                }
+                const cellElem = document.querySelector(
+                    `#grid .cell[data-x="${x}"][data-y="${y}"]`
+                );
+                const ownerAtCell = cellElem
+                    ? parseInt(cellElem.dataset.owner, 10) || 0
+                    : 0;
+                if (ownerAtCell > 0 && ownerAtCell !== partieTour ) {
+                    previewPieceOnGrid(offsetX, offsetY, false);
+                    return false;
+                }
+
+                if (available.has(`${x},${y}`)) {
+                    coversCorner = true;
+                }
+                const voisins = [
+                    [x-1, y], [x+1, y],
+                    [x, y-1], [x, y+1]
+                ];
+                for (let [vx, vy] of voisins) {
+                    if (vx < 0 || vx >= 20 || vy < 0 || vy >= 20) continue;
+                    const sideCell = document.querySelector(
+                        `#grid .cell[data-x="${vx}"][data-y="${vy}"]`
+                    );
+                    const ownerSide = sideCell
+                        ? parseInt(sideCell.dataset.owner, 10) || 0
+                        : 0;
+                    if (ownerSide === partieTour) {
+                        touchesSide = true;
+                    }
+                }
+            }
+        }
+        const valid = coversCorner && !touchesSide;
+        previewPieceOnGrid(offsetX, offsetY, valid);
+        return valid;
+    }
+
+    function previewPieceOnGrid(offsetX, offsetY, valid) {
+        resetGridPreview();
+        if (!draggedPiece) return;
+        const shape = newForme || extractPieceArrayFromGrid(draggedPiece);
+        for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[r].length; c++) {
+                if (shape[r][c] !== 1) continue;
+                const x = offsetX + c, y = offsetY + r;
+                if (x < 0 || x >= 20 || y < 0 || y >= 20) {
+                    return;
+                }
+            }
+        }
+        for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[r].length; c++) {
+                if (shape[r][c] !== 1) continue;
+                const x = offsetX + c, y = offsetY + r;
+                const cell = document.querySelector(
+                    `#grid [data-x="${x}"][data-y="${y}"]`
+                );
+                if (cell) {
+                    cell.style.backgroundColor = currentPieceColor;
+                    cell.style.border = valid
+                        ? "3px solid #65bc65"
+                        : "3px solid #d34040";
+                }
+            }
+        }
+    }
+
+    function resetGridPreview() {
+        document.querySelectorAll('#grid .cell').forEach(cell => {
+            if (cell.dataset.originalColor !== "white") {
+                cell.style.backgroundColor = cell.dataset.originalColor;
+            } else {
+                cell.style.backgroundColor = "white";
+            }
+            cell.style.border = "1px solid #e6e6e6";
+        });
+    }
+
+    function drop(event) {
+        event.preventDefault();
+        if (!draggedPiece) return;
+        cellulesAvantDrop = [];
+        document.querySelectorAll('#grid .cell').forEach(cellElem => {
+            cellulesAvantDrop.push({
+                x:     parseInt(cellElem.dataset.x, 10),
+                y:     parseInt(cellElem.dataset.y, 10),
+                owner: parseInt(cellElem.dataset.owner, 10) || 0,
+                color: cellElem.dataset.originalColor || 'white'
+            });
+        });
+
+        const x0 = parseInt(event.target.dataset.x, 10);
+        const y0 = parseInt(event.target.dataset.y, 10);
+        const shape = newForme || extractPieceArrayFromGrid(draggedPiece);
+        const offsetX = x0 - draggedOffsetX;
+        const offsetY = y0 - draggedOffsetY;
+
+        const positions = [];
+        shape.forEach((row, r) => {
+            row.forEach((v, c) => {
+                if (v === 1) positions.push({ x: offsetX + c, y: offsetY + r });
+            });
+        });
+
+        const outOfBounds = positions.some(pos =>
+            pos.x < 0 || pos.x > 19 || pos.y < 0 || pos.y > 19
+        );
+        if (outOfBounds) {
+            console.warn("Drop annulé : la pièce sortirait de la grille.");
+            return;
+        }
+        const isValid = checkPlacement(event);
+
+        const pieceId = event.dataTransfer.getData("text/plain");
+        const pieceElement = document.getElementById(pieceId);
+        if (!pieceElement || pieceElement.closest('.other-players-pieces')) return;
+
+        positions.forEach(pos => {
+            grille[pos.y][pos.x] = {
+                owner:   partieTour,
+                pieceId: pieceId
+            };
+
+            const cell = document.querySelector(
+                `#grid [data-x="${pos.x}"][data-y="${pos.y}"]`
+            );
+            if (cell) {
+                cell.style.backgroundColor = currentPieceColor;
+                cell.style.border = isValid
+                    ? "2px solid #65bc65"
+                    : "3px solid #d34040";
+                cell.dataset.owner = partieTour.toString();
+                cell.setAttribute("data-piece-id", pieceId);
+            }
+        });
+        cellulesApresDrop = [];
+        document.querySelectorAll('#grid .cell').forEach(cellElem => {
+            cellulesApresDrop.push({
+                x:     parseInt(cellElem.dataset.x, 10),
+                y:     parseInt(cellElem.dataset.y, 10),
+                owner: parseInt(cellElem.dataset.owner, 10) || 0,
+                color: cellElem.style.backgroundColor
+            });
+        });
+        isPiecePlaced = true;
+        disablePieceInAvailableList(pieceId);
+        activePieceInGrid = {
+            id: pieceId,
+            positions,
+            color: currentPieceColor
+        };
+        showRotationControls(x0, y0);
+        draggedPiece.classList.remove("dragging");
+        draggedPiece = null;
+        newForme = null;
+    }
+
+
+    function enablePieceInAvailableList(pieceId) {
+        let pieceElement = document.getElementById(pieceId);
+        if (pieceElement) {
+            pieceElement.style.opacity = "1";
+            pieceElement.style.pointerEvents = "auto";
+        }
+    }
+
+    function disablePieceInAvailableList(pieceId) {
+        let pieceElement = document.getElementById(pieceId);
+        if (pieceElement) {
+            pieceElement.style.opacity = "0.5";
+            pieceElement.style.pointerEvents = "none";
+        }
+    }
+
+    document.addEventListener('dragend', function (event) {
+        if (draggedPiece) {
+            draggedPiece.classList.remove('dragging');
+            enablePieceInAvailableList(draggedPiece.id);
+            draggedPiece = null;
+            isPiecePlaced = false;
+            hideRotationControls();
+            resetGridPreview();
+        }
+    });
+
+    document.getElementById("buttonCroix").addEventListener("click", function () {
+        effacerErreurBlokus();
+        if (activePieceInGrid) {
+            activePieceInGrid.positions.forEach(pos => {
+                const saved = cellulesAvantDrop.find(c => c.x === pos.x && c.y === pos.y);
+                grille[pos.y][pos.x] = {
+                    owner:  saved?.owner ?? null,
+                    pieceId: null
+                };
+                const cell = document.querySelector(`#grid [data-x="${pos.x}"][data-y="${pos.y}"]`);
+                if (cell) {
+                    cell.style.backgroundColor = saved?.color || "white";
+                    cell.style.border = "1px solid #e6e6e6";
+                    if (saved && saved.owner != null) {
+                        cell.dataset.owner = saved.owner.toString();
+                    } else {
+                        cell.removeAttribute("data-owner");
+                    }
+                    cell.removeAttribute("data-piece-id");
+                }
+            });
+            enablePieceInAvailableList(activePieceInGrid.id);
+            activePieceInGrid = null;
+            isPiecePlaced = false;
+            newForme = null;
+            resetGridPreview();
+            hideRotationControls();
+        }
+    });
+
+    document.getElementById("finTourButton").addEventListener("click", function () {
+        if (activePieceInGrid) {
+            let positions = activePieceInGrid.positions.map(pos => [parseInt(pos.x), parseInt(pos.y)]);
+            let idPartie = document.getElementById("idPartie").value;
+            let idPiece = parseInt(activePieceInGrid.id);
+            let positionsQueryString = positions.map(pos => `positionOccupee=${pos[0]},${pos[1]}`).join('&');
+            let url = `/blokus/tour-partie-ajax?idPartie=${encodeURIComponent(idPartie)}&idPiece=${idPiece}&${positionsQueryString}`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.fin) {
+                    }
+                    if (data.success) {
+                    } else if (data.error) {
+                        afficherErreurBlokus(data.error);
+                    }
+                })
+                .catch(error => {
+                    afficherErreurBlokus("Erreur serveur, impossible de valider le placement.");
+                    console.error('Erreur:', error);
+                });
+        } else {
+            afficherErreurBlokus("Aucune pièce n'a été placée.");
+        }
+    });
+
+    function dragFromGrid(event) {
+        hideRotationControls();
+        effacerErreurBlokus();
+        const targetCell = event.target;
+        const x = parseInt(targetCell.dataset.x, 10);
+        const y = parseInt(targetCell.dataset.y, 10);
+        if (isNaN(x) || isNaN(y) || x < 0 || x >= 20 || y < 0 || y >= 20) {
+            event.preventDefault();
+            return;
+        }
+        const { owner, pieceId } = grille[y][x] || {};
+        if (!pieceId) {
+            event.preventDefault();
+            return;
+        }
+        draggedPiece = document.getElementById(pieceId);
+        if (!draggedPiece) {
+            console.error("Pièce non trouvée dans le DOM :", pieceId);
+            event.preventDefault();
+            return;
+        }
+        const pieceCells = [];
+        for (let yy = 0; yy < 20; yy++) {
+            for (let xx = 0; xx < 20; xx++) {
+                const cellData = grille[yy][xx];
+                if (cellData && cellData.pieceId === pieceId) {
+                    pieceCells.push({ x: xx, y: yy });
+                }
+            }
+        }
+        newForme = calculateNewForme(pieceCells);
+        pieceCells.forEach(pos => {
+            const saved = cellulesAvantDrop.find(c => c.x === pos.x && c.y === pos.y);
+            grille[pos.y][pos.x] = {
+                owner:  saved?.owner ?? null,
+                pieceId: null
+            };
+            const cell = document.querySelector(
+                `#grid [data-x="${pos.x}"][data-y="${pos.y}"]`
+            );
+            if (cell) {
+                const ownerToRestore = (saved && saved.owner != null) ? saved.owner.toString() : "";
+                const colorToRestore = saved?.color || "white";
+                cell.dataset.owner = ownerToRestore;
+                cell.style.backgroundColor = colorToRestore;
+                cell.style.border = "1px solid #e6e6e6";
+                cell.removeAttribute("data-piece-id");
+            }
+        });
+        draggedPiece.classList.add('dragging');
+
+        const img = new Image();
+        img.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+        event.dataTransfer.setDragImage(img, 0, 0);
+
+        event.dataTransfer.setData("text/plain", pieceId);
+        draggedOffsetX = parseInt(targetCell.dataset.x, 10) - pieceCells[0].x;
+        draggedOffsetY = parseInt(targetCell.dataset.y, 10) - pieceCells[0].y;
+        enablePieceInAvailableList(pieceId);
+        isPiecePlaced = false;
+    }
+
+
+    function calculateNewForme(pieceCells) {
+        let minX = Math.min(...pieceCells.map(cell => cell.x));
+        let minY = Math.min(...pieceCells.map(cell => cell.y));
+        let maxX = Math.max(...pieceCells.map(cell => cell.x));
+        let maxY = Math.max(...pieceCells.map(cell => cell.y));
+        let width = maxX - minX + 1;
+        let height = maxY - minY + 1;
+        let forme = Array(height).fill().map(() => Array(width).fill(0));
+        pieceCells.forEach(cell => {
+            let x = cell.x - minX;
+            let y = cell.y - minY;
+            forme[y][x] = 1;
+        });
+        return forme;
+    }
+
+    function effacerErreurBlokus() {
+        let old = document.getElementById('messageErreurBlokus');
+        if (old) old.remove();
+    }
+    function afficherErreurBlokus(message) {
+        effacerErreurBlokus();
+        let div = document.createElement('div');
+        div.id = 'messageErreurBlokus';
+        div.className = 'alert alert-danger mt-3';
+        div.innerText = message;
+        const erreurZone = document.getElementById('erreur-blokus-zone');
+        if (erreurZone) {
+            erreurZone.appendChild(div);
+        } else {
+            document.querySelector('.main-content').prepend(div);
+        }
+    }
+    function startTimer() {
+        const timerMinutes = parseInt(document.getElementById("timerMinutes").value, 10);
+        let startTimeStr = document.getElementById("startTime").value;
+        const timerElement = document.getElementById("timer");
+
+        if (!timerElement || isNaN(timerMinutes) || !startTimeStr) return;
+
+        if (!startTimeStr.endsWith('Z')) startTimeStr += 'Z';
+
+        const startTime = new Date(startTimeStr);
+        const endTime = new Date(startTime.getTime() + timerMinutes * 60000);
+
+        let interval = null;
+
+        function updateTimer() {
+            const now = new Date();
+            let remaining = Math.floor((endTime - now) / 1000);
+            if (remaining < 0) remaining = 0;
+            const min = Math.floor(remaining / 60);
+            const sec = remaining % 60;
+            timerElement.textContent = `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+
+            if (remaining <= 0) {
+                clearInterval(interval);
+                timerElement.textContent = "00:00";
+            }
+        }
+        updateTimer();
+        interval = setInterval(updateTimer, 1000);
+    }
+
+    if (document.getElementById("timer-container")) {
+        startTimer();
+    }
+
+</script>
+
+</body>
+</html>
