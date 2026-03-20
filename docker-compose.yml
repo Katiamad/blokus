@@ -1,0 +1,21 @@
+services:
+  service-mission:
+    image: projets2
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - DB_HOST=mysql_projet2
+      - DB_PORT=3306
+    depends_on:
+      - mysql_projet2
+
+  mysql_projet2:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: base-projets2
